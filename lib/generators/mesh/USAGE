@@ -1,0 +1,35 @@
+Description:
+    The Mesh generator combines application renaming and deployment setup into a single,
+    unified command. It renames your Rails application from "keystone_base" to your
+    chosen name and sets up Kamal deployment with 1Password integration.
+
+Example:
+    bin/rails generate mesh my_awesome_app
+
+    This will:
+    1. Rename the application from "keystone_base" to "my_awesome_app"
+    2. Update all relevant files (config/application.rb, PWA manifest, Dockerfile, etc.)
+    3. Set up Kamal deployment configuration
+    4. Configure 1Password integration for secrets management
+    5. Create a new 1Password vault item named "my_awesome_app"
+
+Prerequisites:
+    - 1Password CLI must be installed and authenticated
+    - GitHub token must be available in 1Password vault at Personal/Rails-App-Template-Production
+    - Rails master key must exist at config/master.key OR in Personal/keystone_base vault
+
+What it does:
+    - Renames application module in config/application.rb
+    - Updates service name, image name, and volume names in deployment files
+    - Updates PWA manifest with new application name
+    - Updates Dockerfile comments
+    - Generates Kamal deployment configuration (config/deploy.yml)
+    - Generates Kamal secrets file (.kamal/secrets)
+    - Creates 1Password vault item with all environment variables and secrets
+    - Provides clear next steps for deployment
+
+Arguments:
+    new_name: The new application name in snake_case (required)
+
+Options:
+    --verbose: Enable verbose logging for debugging 1Password integration issues

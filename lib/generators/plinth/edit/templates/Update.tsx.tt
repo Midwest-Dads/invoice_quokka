@@ -1,0 +1,303 @@
+import { useState } from "react";
+import { visit } from "@hotwired/turbo";
+import { useApiRequest } from "../../hooks/useApiRequest";
+<% if reference_attributes.any? -%>
+import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
+import { ChevronDown, Check } from "lucide-react";
+<% end -%>
+
+// #STYLE_GUIDE: TypeScript interfaces use camelCase (props are transformed by turbo-mount)
+interface <%= class_name %>Props {
+  id: string;
+<% model_attributes.each do |attribute| -%>
+  <%= attribute.name.camelize(:lower) %>: <%= typescript_type(attribute) %>;
+<% end -%>
+  createdAt: string;
+  updatedAt: string;
+}
+
+<% reference_attributes.each do |attribute| -%>
+interface <%= reference_model_name(attribute) %>Props {
+  id: string;
+  displayName: string;
+}
+
+<% end -%>
+interface <%= class_name %>UpdateProps {
+  <%= singular_name.camelize(:lower) %>: <%= class_name %>Props;
+<% reference_attributes.each do |attribute| -%>
+  <%= reference_collection_name(attribute).camelize(:lower) %>: <%= reference_model_name(attribute) %>Props[];
+<% end -%>
+}
+
+// #STYLE_GUIDE: Update component for editing existing records (includes delete functionality)
+// - Uses daisyUI components for consistent styling
+// - Navigation via Turbo.visit() for SPA-like experience
+// - API calls via useApiRequest hook for consistency
+// #TODO: This is a basic implementation - customize form fields and validation as needed
+export default function <%= class_name %>Update({ <%= singular_name.camelize(:lower) %><% if reference_attributes.any? %>, <%= reference_attributes.map { |attr| reference_collection_name(attr).camelize(:lower) }.join(', ') %><% end %> }: <%= class_name %>UpdateProps) {
+  const [formData, setFormData] = useState({
+<% editable_attributes.each do |attribute| -%>
+<% if attribute.type == :references -%>
+    <%= reference_foreign_key(attribute).camelize(:lower) %>: <%= singular_name.camelize(:lower) %>.<%= reference_foreign_key(attribute).camelize(:lower) %> || "",
+<% else -%>
+    <%= attribute.name.camelize(:lower) %>: <%= singular_name.camelize(:lower) %>.<%= attribute.name.camelize(:lower) %> || <% case attribute.type when :boolean %>false<% when :integer, :decimal, :float %>0<% else %>""<% end %>,
+<% end -%>
+<% end -%>
+  });
+
+<% reference_attributes.each do |attribute| -%>
+  const [selected<%= reference_model_name(attribute) %>, setSelected<%= reference_model_name(attribute) %>] = useState<<%= reference_model_name(attribute) %>Props | null>(
+    <%= reference_collection_name(attribute).camelize(:lower) %>.find(<%= attribute.name %> => <%= attribute.name %>.id === <%= singular_name.camelize(:lower) %>.<%= reference_foreign_key(attribute).camelize(:lower) %>) || null
+  );
+  const [<%= attribute.name %>Query, set<%= attribute.name.classify %>Query] = useState("");
+<% end -%>
+
+  const { loading, errors, makeRequest } = useApiRequest({
+    onSuccess: (data) => {
+      // #TURBO: Use Turbo.visit for navigation instead of window.location
+      visit(`/<%= plural_name %>/${data.id}`);
+    },
+    onError: (error) => {
+      console.error("Failed to update <%= singular_name %>:", error);
+    },
+  });
+
+  const { loading: deleteLoading, makeRequest: makeDeleteRequest } = useApiRequest({
+    onSuccess: () => {
+      // #TURBO: Use Turbo.visit for navigation instead of window.location
+      visit("/<%= plural_name %>");
+    },
+    onError: (error) => {
+      console.error("Failed to delete <%= singular_name %>:", error);
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const submitData = {
+      ...formData,
+<% reference_attributes.each do |attribute| -%>
+      <%= reference_foreign_key(attribute).camelize(:lower) %>: selected<%= reference_model_name(attribute) %>?.id || "",
+<% end -%>
+    };
+
+    await makeRequest("PUT", `/api/v1/<%= plural_name %>/${<%= singular_name.camelize(:lower) %>.id}`, {
+      <%= singular_name.camelize(:lower) %>: submitData,
+    });
+  };
+
+  const handleDelete = async () => {
+    if (confirm("Are you sure you want to delete this <%= singular_name %>? This action cannot be undone.")) {
+      await makeDeleteRequest("DELETE", `/api/v1/<%= plural_name %>/${<%= singular_name.camelize(:lower) %>.id}`);
+    }
+  };
+
+  const handleCancel = () => {
+    // #TURBO: Use Turbo.visit for navigation
+    visit(`/<%= plural_name %>/${<%= singular_name.camelize(:lower) %>.id}`);
+  };
+
+  const getFieldError = (fieldName: string) => {
+    return errors?.find((error: any) => error.field === fieldName)?.message;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Edit <%= class_name %></h1>
+        <div className="join">
+          <button
+            onClick={handleCancel}
+            className="btn btn-outline join-item"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            className="btn btn-error join-item"
+            disabled={deleteLoading || loading}
+          >
+            {deleteLoading ? (
+              <>
+                <span className="loading loading-spinner loading-sm"></span>
+                Deleting...
+              </>
+            ) : (
+              "Delete"
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Form */}
+      <div className="card bg-base-100 shadow-xl">
+        <div className="card-body">
+          <form onSubmit={handleSubmit} className="space-y-4">
+<% editable_attributes.each do |attribute| -%>
+<% if attribute.type == :references -%>
+            {/* <%= attribute.name.humanize %> field */}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text"><%= attribute.name.humanize %></span>
+              </label>
+              <div className="relative">
+                <Listbox
+                  value={selected<%= reference_model_name(attribute) %>}
+                  onChange={(value) => {
+                    setSelected<%= reference_model_name(attribute) %>(value);
+                    setFormData(prev => ({
+                      ...prev,
+                      <%= reference_foreign_key(attribute).camelize(:lower) %>: value?.id || ""
+                    }));
+                  }}
+                >
+                  <ListboxButton className={`input input-bordered w-full text-left ${getFieldError('<%= reference_foreign_key(attribute).camelize(:lower) %>') ? 'input-error' : ''}`}>
+                    {selected<%= reference_model_name(attribute) %>?.displayName || "Select <%= attribute.name.humanize.downcase %>"}
+                    <ChevronDown className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none w-5 h-5" />
+                  </ListboxButton>
+                  <ListboxOptions className="absolute z-10 mt-1 w-full bg-base-100 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                    {(() => {
+                      const filtered<%= reference_model_name(attribute) %> = <%= reference_collection_name(attribute).camelize(:lower) %>
+                        .filter((<%= attribute.name %>) =>
+                          <%= attribute.name %>.displayName.toLowerCase().includes(<%= attribute.name %>Query.toLowerCase())
+                        );
+
+                      if (filtered<%= reference_model_name(attribute) %>.length === 0) {
+                        return (
+                          <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
+                            No <%= attribute.name.humanize.downcase %> found.
+                          </div>
+                        );
+                      }
+
+                      return filtered<%= reference_model_name(attribute) %>.map((<%= attribute.name %>) => (
+                        <ListboxOption
+                          key={<%= attribute.name %>.id}
+                          value={<%= attribute.name %>}
+                          className="relative cursor-default select-none py-2 pl-10 pr-4 hover:bg-base-200"
+                        >
+                          {<%= attribute.name %>.displayName}
+                          {selected<%= reference_model_name(attribute) %>?.id === <%= attribute.name %>.id && (
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                              <Check className="h-5 w-5" aria-hidden="true" />
+                            </span>
+                          )}
+                        </ListboxOption>
+                      ));
+                    })()}
+                  </ListboxOptions>
+                </Listbox>
+              </div>
+              {getFieldError('<%= reference_foreign_key(attribute).camelize(:lower) %>') && (
+                <label className="label">
+                  <span className="label-text-alt text-error">{getFieldError('<%= reference_foreign_key(attribute).camelize(:lower) %>')}</span>
+                </label>
+              )}
+            </div>
+
+<% elsif attribute.type == :boolean -%>
+            {/* <%= attribute.name.humanize %> field */}
+            <div className="form-control">
+              <label className="label cursor-pointer">
+                <span className="label-text"><%= attribute.name.humanize %></span>
+                <input
+                  type="checkbox"
+                  className="checkbox"
+                  checked={formData.<%= attribute.name.camelize(:lower) %>}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    <%= attribute.name.camelize(:lower) %>: e.target.checked
+                  }))}
+                />
+              </label>
+              {getFieldError('<%= attribute.name.camelize(:lower) %>') && (
+                <label className="label">
+                  <span className="label-text-alt text-error">{getFieldError('<%= attribute.name.camelize(:lower) %>')}</span>
+                </label>
+              )}
+            </div>
+
+<% elsif attribute.type == :text -%>
+            {/* <%= attribute.name.humanize %> field */}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text"><%= attribute.name.humanize %></span>
+              </label>
+              <textarea
+                className={`textarea textarea-bordered ${getFieldError('<%= attribute.name.camelize(:lower) %>') ? 'textarea-error' : ''}`}
+                placeholder="Enter <%= attribute.name.humanize.downcase %>"
+                value={formData.<%= attribute.name.camelize(:lower) %>}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  <%= attribute.name.camelize(:lower) %>: e.target.value
+                }))}
+                rows={4}
+              />
+              {getFieldError('<%= attribute.name.camelize(:lower) %>') && (
+                <label className="label">
+                  <span className="label-text-alt text-error">{getFieldError('<%= attribute.name.camelize(:lower) %>')}</span>
+                </label>
+              )}
+            </div>
+
+<% else -%>
+            {/* <%= attribute.name.humanize %> field */}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text"><%= attribute.name.humanize %></span>
+              </label>
+              <input
+                type="<%= input_type(attribute) %>"
+                className={`input input-bordered ${getFieldError('<%= attribute.name.camelize(:lower) %>') ? 'input-error' : ''}`}
+                placeholder="Enter <%= attribute.name.humanize.downcase %>"
+                value={formData.<%= attribute.name.camelize(:lower) %>}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  <%= attribute.name.camelize(:lower) %>: <% if attribute.type == :integer || attribute.type == :decimal || attribute.type == :float %>Number(e.target.value)<% else %>e.target.value<% end %>
+                }))}
+              />
+              {getFieldError('<%= attribute.name.camelize(:lower) %>') && (
+                <label className="label">
+                  <span className="label-text-alt text-error">{getFieldError('<%= attribute.name.camelize(:lower) %>')}</span>
+                </label>
+              )}
+            </div>
+
+<% end -%>
+<% end -%>
+            {/* Submit buttons */}
+            <div className="form-control mt-6">
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="btn btn-primary flex-1"
+                  disabled={loading || deleteLoading}
+                >
+                  {loading ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm"></span>
+                      Updating...
+                    </>
+                  ) : (
+                    "Update <%= class_name %>"
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="btn btn-outline"
+                  disabled={loading || deleteLoading}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

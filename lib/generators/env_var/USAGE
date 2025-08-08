@@ -1,0 +1,37 @@
+Description:
+Add a new environment variable to all proper places in your Rails application
+configured with Kamal deployment and 1Password integration.
+
+    This generator will:
+    • Add the variable to your .env file
+    • Update config/deploy.yml as a secret variable
+    • Update .kamal/secrets for secure deployment
+    • Optionally update your 1Password vault (if CLI is available)
+
+Example:
+rails generate env_var STRIPE_SECRET_KEY sk_live_example --description="Stripe API secret key for payments"
+
+    # Add a variable with default placeholder value
+    rails generate env_var NEW_API_KEY
+
+Usage:
+rails generate env_var VARIABLE_NAME [value] [options]
+
+Arguments:
+VARIABLE_NAME Environment variable name (will be converted to UPPER_CASE)
+value Environment variable value (default: "CHANGEME")
+
+Options:
+[--description=DESCRIPTION] # Description of the environment variable
+
+Notes:
+• Variable names will be automatically converted to UPPER_CASE
+• All variables are treated as secrets and stored in 1Password for secure deployment
+• Variables are injected securely during deployment via Kamal
+• Requires existing Kamal configuration (run 'rails generate mesh' first)
+• 1Password CLI integration is optional but recommended for automatic vault updates
+
+Examples:
+rails generate env_var OPENAI_API_KEY sk-example123 --description="OpenAI API key for AI features"
+rails generate env_var REDIS_URL redis://localhost:6379 --description="Redis connection URL"
+rails generate env_var WEBHOOK_SECRET abc123def456 --description="Webhook verification secret"

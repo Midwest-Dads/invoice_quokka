@@ -1,0 +1,7 @@
+# frozen_string_literal: true
+
+class <%= controller_class_name %> < ApplicationController
+  def index
+    @<%= plural_name %> = <%= class_name %>.all
+  end
+end

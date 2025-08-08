@@ -1,0 +1,52 @@
+# frozen_string_literal: true
+
+class Api::V1::<%= controller_class_name %> < ApplicationController
+  before_action :set_<%= singular_name %>, only: [:show, :update, :destroy]
+
+  # GET /api/v1/<%= plural_name %>
+  def index
+    @<%= plural_name %> = <%= class_name %>.all
+    render json: <%= class_name %>Blueprint.render(@<%= plural_name %>)
+  end
+
+  # GET /api/v1/<%= plural_name %>/1
+  def show
+    render json: <%= class_name %>Blueprint.render(@<%= singular_name %>)
+  end
+
+  # POST /api/v1/<%= plural_name %>
+  def create
+    @<%= singular_name %> = <%= class_name %>.new(<%= singular_name %>_params)
+
+    if @<%= singular_name %>.save
+      render json: <%= class_name %>Blueprint.render(@<%= singular_name %>), status: :created
+    else
+      render json: { errors: @<%= singular_name %>.errors }, status: :unprocessable_entity
+    end
+  end
+
+  # PATCH/PUT /api/v1/<%= plural_name %>/1
+  def update
+    if @<%= singular_name %>.update(<%= singular_name %>_params)
+      render json: <%= class_name %>Blueprint.render(@<%= singular_name %>)
+    else
+      render json: { errors: @<%= singular_name %>.errors }, status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /api/v1/<%= plural_name %>/1
+  def destroy
+    @<%= singular_name %>.destroy
+    head :no_content
+  end
+
+  private
+
+  def set_<%= singular_name %>
+    @<%= singular_name %> = <%= class_name %>.find(params[:id])
+  end
+
+  def <%= singular_name %>_params
+    params.expect(<%= singular_name %>: [<%= editable_attributes.map { |attr| attr.type == :references ? ":#{reference_foreign_key(attr)}" : ":#{attr.name}" }.join(', ') %>])
+  end
+end

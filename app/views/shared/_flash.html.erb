@@ -1,0 +1,17 @@
+<% if flash[:notice] || flash[:alert] %>
+  <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
+    <% if flash[:notice] %>
+      <div role="alert" class="alert alert-success shadow-lg mb-4">
+        <%= lucide_icon('check-circle', class: 'stroke-current shrink-0 h-6 w-6') %>
+        <span><%= flash[:notice] %></span>
+      </div>
+    <% end %>
+
+    <% if flash[:alert] %>
+      <div role="alert" class="alert alert-error shadow-lg mb-4">
+        <%= lucide_icon('x-circle', class: 'stroke-current shrink-0 h-6 w-6') %>
+        <span><%= flash[:alert] %></span>
+      </div>
+    <% end %>
+  </div>
+<% end %>

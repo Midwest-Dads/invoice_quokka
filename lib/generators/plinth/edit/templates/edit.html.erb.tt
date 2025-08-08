@@ -1,0 +1,11 @@
+<%# #STYLE_GUIDE: Minimal ERB view that mounts React component %>
+<%# - Don't modify this file for UI changes - edit the React component instead %>
+<%# - Pass data using snake_case props (automatically converted to camelCase) %>
+<%# - Use Blueprinter for complex objects %>
+
+<%%= turbo_mount("<%= plural_name %>/<%= class_name %>Update", props: {
+  <%= singular_name %>: <%= class_name %>Blueprint.render_as_hash(@<%= singular_name %>)<% if reference_attributes.any? %>,<% end %>
+<% reference_attributes.each_with_index do |attribute, index| -%>
+  <%= reference_collection_name(attribute) %>: <%= reference_model_name(attribute) %>Blueprint.render_as_hash(@<%= reference_collection_name(attribute) %>)<%= index < reference_attributes.length - 1 ? ',' : '' %>
+<% end -%>
+}, class: "container mx-auto p-4") %>

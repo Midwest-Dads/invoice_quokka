@@ -1,0 +1,19 @@
+# frozen_string_literal: true
+
+# #STYLE_GUIDE: Blueprinter serializer with LowerCamelTransformer
+# - Automatically converts snake_case keys to camelCase for frontend consumption
+# - Used by API controllers to serialize JSON responses
+class <%= class_name %>Blueprint < Blueprinter::Base
+  identifier :id
+
+<% non_reference_attributes.each do |attribute| -%>
+<% next if %w[created_at updated_at].include?(attribute.name) -%>
+  field :<%= attribute.name %>
+<% end -%>
+<% reference_attributes.each do |attribute| -%>
+  field :<%= reference_foreign_key(attribute) %>
+<% end -%>
+  field :display_name
+  field :created_at
+  field :updated_at
+end

@@ -1,0 +1,131 @@
+import { visit } from "@hotwired/turbo";
+import { useApiRequest } from "../../hooks/useApiRequest";
+
+import { <%= class_name %> } from "../../types/<%= plural_name %>.d";
+
+interface <%= class_name %>IndexProps {
+  <%= plural_name.camelize(:lower) %>: <%= class_name %>[];
+}
+
+// #STYLE_GUIDE: Index component shows list with delete functionality
+// - Uses daisyUI components for consistent styling
+// - Navigation via Turbo.visit() for SPA-like experience
+// - API calls via useApiRequest hook for consistency
+export default function <%= class_name %>Index({ <%= plural_name.camelize(:lower) %> }: <%= class_name %>IndexProps) {
+  const { loading, makeRequest } = useApiRequest({
+    onSuccess: () => {
+      // #TURBO: Use Turbo.visit for navigation instead of window.location
+      visit("/<%= plural_name %>");
+    },
+    onError: (error) => {
+      console.error("Failed to delete <%= singular_name %>:", error);
+      // #TODO: Add proper error handling/toast notifications
+    },
+  });
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this <%= singular_name %>?")) {
+      await makeRequest("DELETE", `/api/v1/<%= plural_name %>/${id}`);
+    }
+  };
+
+  const handleView = (id: string) => {
+    // #TURBO: Use Turbo.visit for navigation
+    visit(`/<%= plural_name %>/${id}`);
+  };
+
+  const handleEdit = (id: string) => {
+    // #TURBO: Use Turbo.visit for navigation
+    visit(`/<%= plural_name %>/${id}/edit`);
+  };
+
+  const handleCreate = () => {
+    // #TURBO: Use Turbo.visit for navigation
+    visit("/<%= plural_name %>/new");
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header with Create button */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold"><%= class_name.pluralize %></h1>
+        <button
+          onClick={handleCreate}
+          className="btn btn-primary"
+        >
+          Create New <%= class_name %>
+        </button>
+      </div>
+
+      {/* Table using daisyUI */}
+      <div className="overflow-x-auto">
+        <table className="table table-zebra">
+          <thead>
+            <tr>
+              <th>ID</th>
+<% model_attributes.each do |attribute| -%>
+              <th><%= attribute.name.humanize %></th>
+<% end -%>
+              <th>Created At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {<%= plural_name.camelize(:lower) %>.map((<%= singular_name.camelize(:lower) %>) => (
+              <tr key={<%= singular_name.camelize(:lower) %>.id}>
+                <td>{<%= singular_name.camelize(:lower) %>.id}</td>
+<% model_attributes.each do |attribute| -%>
+<% if attribute.type == :references -%>
+                <td>{<%= singular_name.camelize(:lower) %>.<%= attribute.name.camelize(:lower) %>DisplayName || <%= singular_name.camelize(:lower) %>.<%= reference_foreign_key(attribute).camelize(:lower) %> || ''}</td>
+<% else -%>
+                <td>{<%= singular_name.camelize(:lower) %>.<%= attribute.name.camelize(:lower) %>}</td>
+<% end -%>
+<% end -%>
+                <td>{new Date(<%= singular_name.camelize(:lower) %>.createdAt).toLocaleDateString()}</td>
+                <td>
+                  <div className="join">
+                    <button
+                      onClick={() => handleView(<%= singular_name.camelize(:lower) %>.id)}
+                      className="btn btn-sm btn-outline join-item"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleEdit(<%= singular_name.camelize(:lower) %>.id)}
+                      className="btn btn-sm btn-outline join-item"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(<%= singular_name.camelize(:lower) %>.id)}
+                      className="btn btn-sm btn-error join-item"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <span className="loading loading-spinner loading-xs"></span>
+                      ) : (
+                        "Delete"
+                      )}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {<%= plural_name.camelize(:lower) %>.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-base-content/60">No <%= plural_name.humanize.downcase %> found.</p>
+          <button
+            onClick={handleCreate}
+            className="btn btn-primary mt-4"
+          >
+            Create Your First <%= class_name %>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

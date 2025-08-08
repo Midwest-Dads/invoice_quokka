@@ -1,0 +1,110 @@
+<div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-base-200 to-base-300">
+  <div class="card w-full max-w-2xl bg-base-100 shadow-2xl border border-base-200">
+    <div class="card-body p-8">
+      <!-- Header Section -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-primary mb-2">Sign Up</h1>
+        <p class="text-base-content/70 text-sm">Create your account today</p>
+      </div>
+
+      <%= form_with model: @user, url: registration_path, local: true, class: "space-y-6" do |form| %>
+
+        <!-- Email Field -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium flex items-center gap-2">
+              <%= lucide_icon('mail', class: 'h-4 w-4 text-primary') %>
+              Email Address
+            </span>
+          </label>
+          <%= form.email_field :email_address, 
+                placeholder: "alex@example.com", 
+                class: "input input-bordered w-full #{@user.errors[:email_address].any? ? 'input-error' : ''}",
+                required: true %>
+          <% if @user.errors[:email_address].any? %>
+            <label class="label">
+              <span class="label-text-alt text-error">
+                <%= lucide_icon('alert-circle', class: 'inline h-4 w-4 mr-1') %>
+                <%= @user.errors[:email_address].first %>
+              </span>
+            </label>
+          <% else %>
+            <label class="label">
+              <span class="label-text-alt text-base-content/60">For account access and notifications</span>
+            </label>
+          <% end %>
+        </div>
+
+        <!-- Password Fields Group -->
+        <div class="space-y-4 p-4 bg-base-200/50 rounded-lg border border-base-300">
+          <h3 class="text-sm font-medium text-base-content/80 flex items-center gap-2">
+            <%= lucide_icon('lock', class: 'h-4 w-4 text-primary') %>
+            Security
+          </h3>
+          
+          <!-- Password Fields Row -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Password Field -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Password</span>
+              </label>
+              <%= form.password_field :password, 
+                    placeholder: "Create a secure password", 
+                    class: "input input-bordered w-full #{@user.errors[:password].any? ? 'input-error' : ''}",
+                    required: true,
+                    minlength: 8 %>
+              <% if @user.errors[:password].any? %>
+                <label class="label">
+                  <span class="label-text-alt text-error">
+                    <%= lucide_icon('alert-circle', class: 'inline h-4 w-4 mr-1') %>
+                    <%= @user.errors[:password].first %>
+                  </span>
+                </label>
+              <% else %>
+                <label class="label">
+                  <span class="label-text-alt text-base-content/60">At least 8 characters</span>
+                </label>
+              <% end %>
+            </div>
+
+            <!-- Password Confirmation Field -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Confirm Password</span>
+              </label>
+              <%= form.password_field :password_confirmation, 
+                    placeholder: "Confirm your password", 
+                    class: "input input-bordered w-full #{@user.errors[:password_confirmation].any? ? 'input-error' : ''}",
+                    required: true,
+                    minlength: 8 %>
+              <% if @user.errors[:password_confirmation].any? %>
+                <label class="label">
+                  <span class="label-text-alt text-error">
+                    <%= lucide_icon('alert-circle', class: 'inline h-4 w-4 mr-1') %>
+                    <%= @user.errors[:password_confirmation].first %>
+                  </span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-control mt-8">
+          <%= form.submit "Create Account", class: "btn btn-primary btn-lg w-full gap-2" %>
+        </div>
+      <% end %>
+
+      <!-- Sign In Link -->
+      <div class="divider text-base-content/50">Already have an account?</div>
+      
+      <div class="text-center">
+        <%= link_to new_session_path, class: "btn btn-ghost btn-wide" do %>
+          Sign In
+          <%= lucide_icon('arrow-right', class: 'h-4 w-4') %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

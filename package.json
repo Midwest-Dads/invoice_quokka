@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "daisyui": "^5.0.46",
+    "vite": "^5.4.19",
+    "vite-plugin-ruby": "^5.1.1"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.4",
+    "@hotwired/turbo": "^8.0.13",
+    "@hotwired/turbo-rails": "^8.0.16",
+    "@rails/request.js": "^0.0.12",
+    "@types/react": "^19.1.8",
+    "@vitejs/plugin-react": "^4.7.0",
+    "lucide-react": "^0.525.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "stimulus-vite-helpers": "^3.1.0",
+    "turbo-mount": "^0.4.3"
+  }
+}

@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+class <%= controller_class_name %> < ApplicationController
+  def edit
+    @<%= singular_name %> = <%= class_name %>.find(params[:id])
+<% reference_attributes.each do |attribute| -%>
+    @<%= reference_collection_name(attribute) %> = <%= reference_model_name(attribute) %>.all
+<% end -%>
+  end
+end

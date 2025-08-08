@@ -1,0 +1,117 @@
+import { visit } from "@hotwired/turbo";
+
+// #STYLE_GUIDE: TypeScript interfaces use camelCase (props are transformed by turbo-mount)
+interface <%= class_name %>Props {
+  id: string;
+<% model_attributes.each do |attribute| -%>
+  <%= attribute.name.camelize(:lower) %>: <%= typescript_type(attribute) %>;
+<% end -%>
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface <%= class_name %>ShowProps {
+  <%= singular_name.camelize(:lower) %>: <%= class_name %>Props;
+}
+
+// #STYLE_GUIDE: Show component displays single record details
+// - Uses daisyUI components for consistent styling
+// - Navigation via Turbo.visit() for SPA-like experience
+export default function <%= class_name %>Show({ <%= singular_name.camelize(:lower) %> }: <%= class_name %>ShowProps) {
+  const handleEdit = () => {
+    // #TURBO: Use Turbo.visit for navigation
+    visit(`/<%= plural_name %>/${<%= singular_name.camelize(:lower) %>.id}/edit`);
+  };
+
+  const handleBack = () => {
+    // #TURBO: Use Turbo.visit for navigation
+    visit("/<%= plural_name %>");
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header with actions */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold"><%= class_name %> Details</h1>
+        <div className="join">
+          <button
+            onClick={handleBack}
+            className="btn btn-outline join-item"
+          >
+            Back to List
+          </button>
+          <button
+            onClick={handleEdit}
+            className="btn btn-primary join-item"
+          >
+            Edit
+          </button>
+        </div>
+      </div>
+
+      {/* Details card */}
+      <div className="card bg-base-100 shadow-xl">
+        <div className="card-body">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="label">
+                <span className="label-text font-semibold">ID</span>
+              </label>
+              <p className="text-base-content">{<%= singular_name.camelize(:lower) %>.id}</p>
+            </div>
+
+<% model_attributes.each do |attribute| -%>
+            <div>
+              <label className="label">
+                <span className="label-text font-semibold"><%= attribute.name.humanize %></span>
+              </label>
+<% if attribute.type == :references -%>
+              <p className="text-base-content">
+                {(() => {
+                  // Handle reference field display - show displayName if it's an object, otherwise show the value
+                  const value = <%= singular_name.camelize(:lower) %>.<%= attribute.name.camelize(:lower) %>;
+                  if (typeof value === 'object' && value !== null && 'displayName' in value) {
+                    return value.displayName;
+                  }
+                  return value || 'Not set';
+                })()}
+              </p>
+<% elsif attribute.type == :boolean -%>
+              <p className="text-base-content">
+                <span className={`badge ${<%= singular_name.camelize(:lower) %>.<%= attribute.name.camelize(:lower) %> ? 'badge-success' : 'badge-error'}`}>
+                  {<%= singular_name.camelize(:lower) %>.<%= attribute.name.camelize(:lower) %> ? 'Yes' : 'No'}
+                </span>
+              </p>
+<% elsif attribute.type == :text -%>
+              <div className="text-base-content whitespace-pre-wrap">
+                {<%= singular_name.camelize(:lower) %>.<%= attribute.name.camelize(:lower) %> || 'Not set'}
+              </div>
+<% else -%>
+              <p className="text-base-content">{<%= singular_name.camelize(:lower) %>.<%= attribute.name.camelize(:lower) %> || 'Not set'}</p>
+<% end -%>
+            </div>
+
+<% end -%>
+            <div>
+              <label className="label">
+                <span className="label-text font-semibold">Created At</span>
+              </label>
+              <p className="text-base-content">
+                {new Date(<%= singular_name.camelize(:lower) %>.createdAt).toLocaleString()}
+              </p>
+            </div>
+
+            <div>
+              <label className="label">
+                <span className="label-text font-semibold">Updated At</span>
+              </label>
+              <p className="text-base-content">
+                {new Date(<%= singular_name.camelize(:lower) %>.updatedAt).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

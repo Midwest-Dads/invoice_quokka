@@ -1,0 +1,33 @@
+Description:
+    Toggle between email and SMS authentication methods in your Rails application.
+    This generator switches the authentication system, updates routes, runs migrations,
+    and clears all existing users.
+
+Example:
+    bin/rails generate auth_toggle sms
+    bin/rails generate auth_toggle email
+    bin/rails generate auth_toggle --status
+
+    This will:
+        - Update config/application.rb with the new authentication method
+        - Rewrite config/routes.rb with appropriate controller mappings
+        - Run database migration to update user table schema
+        - Clear all existing users from the database
+        - Display instructions for next steps
+
+Options:
+    --status    Show current authentication method without making changes
+
+Authentication Methods:
+    email       Email/password authentication with registration and password reset
+    sms         SMS verification authentication using phone numbers
+
+Files Created/Modified:
+    config/application.rb   - Authentication method configuration
+    config/routes.rb        - Route mappings for chosen authentication
+    db/migrate/*           - Migration to update user table schema
+
+Note:
+    - All existing users will be cleared when switching authentication methods
+    - Server restart required after switching for configuration changes to take effect
+    - SMS authentication uses mocked Twilio service for development (codes: 1234, 0000)
