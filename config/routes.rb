@@ -8,6 +8,20 @@ Rails.application.routes.draw do
   get "dashboard/index"
   root to: 'dashboard#index'
   
+  # Invoice management
+  resources :clients
+  resources :invoices
+  
+  # API routes
+  namespace :api do
+    namespace :v1 do
+      resources :clients
+      resources :invoices do
+        resources :invoice_items
+      end
+    end
+  end
+  
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 end

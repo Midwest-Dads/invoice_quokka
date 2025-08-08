@@ -18,3 +18,8 @@ Blueprinter.configure do |config|
   # config.datetime_format = ->(datetime) { datetime.to_i * 1000 }
   config.default_transformers = [LowerCamelTransformer]
 end
+
+# Manually require blueprints to ensure they're loaded
+Rails.application.config.to_prepare do
+  Dir[Rails.root.join('app', 'blueprints', '*.rb')].sort.each { |file| require_dependency file }
+end

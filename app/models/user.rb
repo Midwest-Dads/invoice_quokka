@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   has_many :sessions, dependent: :destroy
   has_many :notifications, as: :recipient, dependent: :destroy
+  has_many :clients, dependent: :destroy
+  has_many :invoices, dependent: :destroy
 
   # Conditional setup based on authentication method
   if Rails.application.config.authentication_method == :email
