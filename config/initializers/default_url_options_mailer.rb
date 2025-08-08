@@ -1,8 +1,8 @@
 # Default URL options for different environments
 hosts = {
   development: 'localhost:3000',
-  test: ENV['DOMAIN'] || 'test.example.com',
-  production: ENV['DOMAIN'] || 'example.com'
+  test: 'test.example.com',
+  production: 'invoice-quokka.mangrovetechnology.com'
 }.freeze
 
 protocols = {
